@@ -1,25 +1,31 @@
 #coding: utf-8
 from datetime import datetime
+from django.utils import timezone
 
 from tax.models import Measure
 
+
 class Processor(object):
-    name = ""
+    tax = ""
     description = ""
-    frequency = ""
+    interval = ""
     start_date = ""
 
     def get_measure(self):
         raise NotImplemented()
 
-    def running_time(sef):
-        pass
+    def running_time(self):
+        import ipdb;ipdb.set_trace()
+        last_measure = Measure.objects.filter(tax=self.tax).order_by('measure_date')[0]
+        now = timezone.now()
+        next_run = last_measure.measure_date + self.interval
+        return now > next_run
 
     def save(self):
         value = self.get_measure()
         measure = Measure()
         measure.measure = value
-        measure.tax = name
+        measure.tax = self.tax
         measure.measure_date = datetime.now()
 
     

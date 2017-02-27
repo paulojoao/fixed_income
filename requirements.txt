@@ -2,6 +2,7 @@ appdirs==1.4.0
 Django==1.10.5
 factory-boy==2.8.1
 Faker==0.7.9
+freezegun==0.3.8
 packaging==16.8
 pyparsing==2.1.10
 python-dateutil==2.6.0
