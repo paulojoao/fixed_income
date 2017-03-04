@@ -15,7 +15,6 @@ class Processor(object):
         raise NotImplemented()
 
     def running_time(self):
-        import ipdb;ipdb.set_trace()
         last_measure = Measure.objects.filter(tax=self.tax).order_by('measure_date')[0]
         now = timezone.now()
         next_run = last_measure.measure_date + self.interval
@@ -28,6 +27,6 @@ class Processor(object):
         measure.tax = self.tax
         measure.measure_date = datetime.now()
 
-    
-
-
+    def execute(self):
+        if self.running_time:
+            self.save()

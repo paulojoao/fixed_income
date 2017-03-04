@@ -39,3 +39,7 @@ class ProcessorTestCase(TestCase):
         p.tax = 'CDI'
         self.assertEquals(p.running_time(), False)
 
+
+class TestCommand(TestCase):
+    pass
+
