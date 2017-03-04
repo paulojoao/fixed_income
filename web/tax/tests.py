@@ -39,6 +39,22 @@ class ProcessorTestCase(TestCase):
         p.tax = 'CDI'
         self.assertEquals(p.running_time(), False)
 
+    
+    def test_get_last_running_date(self):
+        measure1 = MeasureFactory.create(measure_date=datetime(2017,3,4,17,00,00), tax="CDI")
+        measure1.save()
+
+        measure2 = MeasureFactory.create(measure_date=datetime(2017,2,28,17,00,00), tax="IPCA")
+        measure2.save()
+
+        measure3 = MeasureFactory.create(measure_date=datetime(2017,2,27,17,00,00), tax="IPCA")
+        measure3.save()
+
+        processor = Processor()
+        processor.tax = 'IPCA'
+        last_run = processor.get_last_running_date()
+        self.assertEquals(last_run, datetime(2017,2,28,17,00,00))
+
 
 class TestCommand(TestCase):
     pass

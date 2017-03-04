@@ -27,6 +27,10 @@ class Processor(object):
         measure.tax = self.tax
         measure.measure_date = datetime.now()
 
+    def get_last_running_date(self):
+        measure = Measure.objects.filter(tax=self.tax).order_by('-measure_date')[0]
+        return measure.measure_date
+
     def execute(self):
         if self.running_time:
             self.save()
