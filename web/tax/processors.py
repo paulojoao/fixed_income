@@ -11,14 +11,8 @@ class Processor(object):
     interval = ""
     start_date = ""
 
-    def get_measure(self):
+    def get_measure(self, date):
         raise NotImplemented()
-
-    def running_time(self):
-        last_measure = Measure.objects.filter(tax=self.tax).order_by('measure_date')[0]
-        now = timezone.now()
-        next_run = last_measure.measure_date + self.interval
-        return now > next_run
 
     def save(self):
         value = self.get_measure()
@@ -28,9 +22,18 @@ class Processor(object):
         measure.measure_date = datetime.now()
 
     def get_last_running_date(self):
-        measure = Measure.objects.filter(tax=self.tax).order_by('-measure_date')[0]
-        return measure.measure_date
+        date = None
+        try:
+            measure = Measure.objects.filter(tax=self.tax).order_by('-measure_date')[0]
+            date = measure.measure_date
+        except IndexError:
+            date = self.start_date
+        return date
 
     def execute(self):
-        if self.running_time:
-            self.save()
+        last_running_date = self.get_last_running_date()
+        next_running_date = last_running_date + self.interval
+        now = timezone.now()
+        while next_running_date < now:
+            self.save(next_running_date)
+            next_running_date += interval
