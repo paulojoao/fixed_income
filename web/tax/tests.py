@@ -2,7 +2,7 @@
 from unittest import mock
 from datetime import datetime, timedelta
 
-from freezegun import freeze_time
+import freezegun
 from django.test import TestCase
 
 from tax.factories import MeasureFactory
@@ -42,14 +42,15 @@ class ProcessorTestCase(TestCase):
         last_run = processor.get_last_running_date()
         self.assertEquals(last_run, datetime(2017,2,27,17,00,00))
     
-    @freeze_time("2017-03-01 01:00:00")
+    @freezegun.freeze_time("2017-03-01 01:00:00")
     @mock.patch('tax.processors.Processor.get_last_running_date')
     @mock.patch('tax.processors.Processor.save')
-    def test_execute(self, mk_get_last_running_date, mk_save):
+    def test_execute(self, mk_save, mk_get_last_running_date):
         p = Processor()
-        mk_get_last_running_date.return_value = datetime(2017, 3, 1, 17 ,0 , 0)
+        p.interval = timedelta(days=1)
+        mk_get_last_running_date.return_value = datetime(2017, 2, 26,  0,1 , 0)
         p.execute()
-        self.assertEquals(mk_save.call_count, 2)
+        self.assertEquals(mk_save.call_count, 3)
 
 
 class TestCommand(TestCase):

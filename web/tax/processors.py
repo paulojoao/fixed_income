@@ -36,4 +36,4 @@ class Processor(object):
         now = timezone.now()
         while next_running_date < now:
             self.save(next_running_date)
-            next_running_date += interval
+            next_running_date += self.interval
