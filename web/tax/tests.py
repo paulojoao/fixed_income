@@ -87,7 +87,7 @@ class APITestCase(TestCase):
         measure1 = MeasureFactory.create(measure_date=datetime(2017,3,4,17,00,00), tax="CDI", measure=14.13)
         measure1.save()
 
-        measure2 = MeasureFactory.create(measure_date=datetime(2017,2,28,17,00,00), tax="IPCA", measure=12.5)
+        measure2 = MeasureFactory.create(measure_date=datetime(2017,2,28,17,00,00), tax="CDI", measure=12.5)
         measure2.save()
 
         url = '/rate'
@@ -95,3 +95,10 @@ class APITestCase(TestCase):
         response = client.get(url, {'rate': 'CDI'})
         self.assertEquals(response.status_code, 200)
         self.assertEquals(float(response.content), 14.13)
+
+    def test_get_none_measure(self):
+        url = '/rate'
+        client = Client()
+        response = client.get(url, {'rate': 'CDI'})
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.content, b'')
