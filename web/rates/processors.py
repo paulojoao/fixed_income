@@ -2,11 +2,11 @@
 from datetime import datetime
 from django.utils import timezone
 
-from tax.models import Measure
+from rates.models import Measure
 
 
 class Processor(object):
-    tax = ""
+    rate = ""
     description = ""
     interval = ""
     start_date = ""
@@ -18,13 +18,13 @@ class Processor(object):
         value = self.get_measure()
         measure = Measure()
         measure.measure = value
-        measure.tax = self.tax
+        measure.rate = self.rate
         measure.measure_date = datetime.now()
 
     def get_last_running_date(self):
         date = None
         try:
-            measure = Measure.objects.filter(tax=self.tax).order_by('-measure_date')[0]
+            measure = Measure.objects.filter(rate=self.rate).order_by('-measure_date')[0]
             date = measure.measure_date
         except IndexError:
             date = self.start_date
