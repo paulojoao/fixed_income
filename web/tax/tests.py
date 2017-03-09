@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 import freezegun
 from django.test import TestCase
+from django.test import Client
 
 from tax.factories import MeasureFactory
 from tax.models import Measure
@@ -78,3 +79,19 @@ class TestCommand(TestCase):
         cmd.handle()
         self.assertTrue(mk_processorA.called)
         self.assertTrue(mk_processorB.called)
+
+
+class APITestCase(TestCase):
+
+    def test_get(self):
+        measure1 = MeasureFactory.create(measure_date=datetime(2017,3,4,17,00,00), tax="CDI", measure=14.13)
+        measure1.save()
+
+        measure2 = MeasureFactory.create(measure_date=datetime(2017,2,28,17,00,00), tax="IPCA", measure=12.5)
+        measure2.save()
+
+        url = '/rate'
+        client = Client()
+        response = client.get(url, {'rate': 'CDI'})
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(float(response.content), 14.13)
