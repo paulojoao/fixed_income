@@ -8,6 +8,7 @@ from django.test import TestCase
 from tax.factories import MeasureFactory
 from tax.models import Measure
 from tax.processors import Processor 
+from tax.management.commands.import_tax import Command
 
 
 class ProcessorTestCase(TestCase):
@@ -53,6 +54,27 @@ class ProcessorTestCase(TestCase):
         self.assertEquals(mk_save.call_count, 3)
 
 
-class TestCommand(TestCase):
-    pass
 
+class ProcessorA(object):
+    def execute(self):
+        pass
+
+
+class ProcessorB(object):
+    def execute(self):
+        pass
+
+class TestCommand(TestCase):
+    
+    @mock.patch('tax.tests.ProcessorA.execute')
+    @mock.patch('tax.tests.ProcessorB.execute')
+    @mock.patch('tax.processors.Processor.__subclasses__')
+    def test_handle(self, mk_subclass, mk_processorB, mk_processorA):
+        p1 = mock.Mock()
+        
+        mk_subclass.return_value = [ProcessorA, ProcessorB]
+
+        cmd = Command()
+        cmd.handle()
+        self.assertTrue(mk_processorA.called)
+        self.assertTrue(mk_processorB.called)
