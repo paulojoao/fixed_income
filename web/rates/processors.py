@@ -50,3 +50,10 @@ class CDIProcessor(Processor):
     def get_measure(self):
         pass
 
+    def get_url(self, date):
+        st = 'ftp://ftp.cetip.com.br/MediaCDI/'+date.strftime('%Y%m%d') + '.txt'
+        return st
+    
+    def parse_value(self, raw):
+        r = raw.strip()
+        return float(r) / 100

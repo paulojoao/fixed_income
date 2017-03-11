@@ -8,7 +8,7 @@ from django.test import Client
 
 from rates.factories import MeasureFactory
 from rates.models import Measure
-from rates.processors import Processor 
+from rates.processors import Processor, CDIProcessor
 from rates.management.commands.import_rates import Command
 
 
@@ -64,6 +64,20 @@ class ProcessorA(object):
 class ProcessorB(object):
     def execute(self):
         pass
+
+class CDIProcessorTestCase(TestCase):
+
+    def test_get_url(self):
+        p = CDIProcessor()
+        dt = datetime(2017, 3, 11)
+        url = p.get_url(dt)
+        self.assertEquals('ftp://ftp.cetip.com.br/MediaCDI/20170311.txt', url)
+
+    def test_parse_value(self):
+        raw = b'000001213                                                               \n'
+        p = CDIProcessor()
+        value = p.parse_value(raw)
+        self.assertEquals(value, 12.13)
 
 class TestCommand(TestCase):
     
