@@ -18,7 +18,7 @@ class ProcessorTestCase(TestCase):
         mk_get_value.return_value = 10.0
         old_count = Measure.objects.count()
         processor = Processor()
-        processor.save()
+        processor.save(None)
         new_count = Measure.objects.count()
         self.assertEquals(old_count, new_count)
     

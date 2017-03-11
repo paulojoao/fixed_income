@@ -1,5 +1,8 @@
 #coding: utf-8
+from urllib.request import urlopen
+from datetime import timedelta
 from datetime import datetime
+
 from django.utils import timezone
 
 from rates.models import Measure
@@ -14,8 +17,8 @@ class Processor(object):
     def get_measure(self, date):
         raise NotImplemented()
 
-    def save(self):
-        value = self.get_measure()
+    def save(self, date):
+        value = self.get_measure(date)
         measure = Measure()
         measure.measure = value
         measure.rate = self.rate
@@ -37,3 +40,13 @@ class Processor(object):
         while next_running_date < now:
             self.save(next_running_date)
             next_running_date += self.interval
+
+class CDIProcessor(Processor):
+    rate = "CDI"
+    description = "TODO"
+    interval = timedelta(days=1)
+    start_date = datetime(2012, 8, 20)
+
+    def get_measure(self):
+        pass
+
