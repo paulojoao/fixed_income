@@ -102,3 +102,16 @@ class APITestCase(TestCase):
         response = client.get(url, {'rate': 'CDI'})
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response.content, b'')
+
+    def test_get_measure_filter(self):
+        measure1 = MeasureFactory.create(measure_date=datetime(2017,3,4,0,0,0), rate="CDI", measure=14.13)
+        measure1.save()
+
+        measure2 = MeasureFactory.create(measure_date=datetime(2017,2,28,0,0,0), rate="CDI", measure=12.5)
+        measure2.save()
+        url = '/rate'
+        filter = {'rate': 'CDI', 'date': '28/02/2017'}
+        client = Client()
+        response = client.get(url, filter)
+        self.assertEquals(200, response.status_code)
+        self.assertEquals(float(response.content), 12.5)
