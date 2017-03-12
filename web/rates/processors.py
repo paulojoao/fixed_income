@@ -1,5 +1,5 @@
 #coding: utf-8
-from urllib.request import urlopen
+from urllib import request
 from datetime import timedelta
 from datetime import datetime
 
@@ -47,8 +47,12 @@ class CDIProcessor(Processor):
     interval = timedelta(days=1)
     start_date = datetime(2012, 8, 20)
 
-    def get_measure(self):
-        pass
+    def get_measure(self, date):
+        import ipdb;ipdb.set_trace()
+        url = self.get_url(date)
+        data = request.urlopen(url).read()
+        value = self.parse_value(data)
+        return value
 
     def get_url(self, date):
         st = 'ftp://ftp.cetip.com.br/MediaCDI/'+date.strftime('%Y%m%d') + '.txt'

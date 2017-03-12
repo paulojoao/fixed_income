@@ -1,6 +1,7 @@
 #coding: utf-8
 from unittest import mock
 from datetime import datetime, timedelta
+from urllib.request import urlopen
 
 import freezegun
 from django.test import TestCase
@@ -78,6 +79,18 @@ class CDIProcessorTestCase(TestCase):
         p = CDIProcessor()
         value = p.parse_value(raw)
         self.assertEquals(value, 12.13)
+
+    @mock.patch('rates.processors.CDIProcessor.parse_value')
+    @mock.patch('rates.processors.CDIProcessor.get_url')
+    @mock.patch('urllib.request.urlopen')
+    def test_get_measure(self, mk_urlopen, mk_get_url, mk_parse_value):
+        mk_get_url.return_value = "http://www.google.com/"
+        mock_urlopen = mock.Mock()
+
+        p = CDIProcessor()
+        p.get_measure('')
+        mk_urlopen.assert_called_with("http://www.google.com/")
+
 
 class TestCommand(TestCase):
     
