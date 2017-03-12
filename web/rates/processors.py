@@ -48,7 +48,6 @@ class CDIProcessor(Processor):
     start_date = datetime(2012, 8, 20)
 
     def get_measure(self, date):
-        import ipdb;ipdb.set_trace()
         url = self.get_url(date)
         data = request.urlopen(url).read()
         value = self.parse_value(data)
