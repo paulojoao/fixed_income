@@ -34,12 +34,16 @@ class Processor(object):
         return date
 
     def execute(self):
-        last_running_date = self.get_last_running_date()
-        next_running_date = last_running_date + self.interval
-        now = timezone.now()
-        while next_running_date < now:
-            self.save(next_running_date)
-            next_running_date += self.interval
+            last_running_date = self.get_last_running_date()
+            next_running_date = last_running_date + self.interval
+            now = timezone.now()
+            while next_running_date < now:
+                try:
+                    self.save(next_running_date)
+                    next_running_date += self.interval
+                    print('.')
+                except Exception:
+                    print('F')
 
 class CDIProcessor(Processor):
     rate = "CDI"
@@ -49,6 +53,7 @@ class CDIProcessor(Processor):
 
     def get_measure(self, date):
         url = self.get_url(date)
+        print(url)
         data = request.urlopen(url).read()
         value = self.parse_value(data)
         return value
