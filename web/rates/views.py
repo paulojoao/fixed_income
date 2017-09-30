@@ -14,7 +14,7 @@ def get_rate(request):
         if rate:
             filters['rate'] = rate
         if date:
-            filters['measure_date'] = '2017-02-28'
+            filters['measure_date'] = date
 
         measure = Measure.objects.filter(**filters).order_by('-measure_date')[0]
         return HttpResponse(measure.measure)
