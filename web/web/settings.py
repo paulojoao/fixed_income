@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import sys
+import urllib.parse
 import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -81,6 +83,31 @@ WSGI_APPLICATION = 'web.wsgi.application'
 #        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
 #    }
 #}
+
+urllib.parse.uses_netloc.append("mysql")
+
+try:
+    if 'DATABASES' not in locals():
+        DATABASES = {}
+    
+    if 'DATABASE_URL' in os.environ:
+        url = urllib.parse.urlparse(os.environ['DATABASE_URL'])
+        DATABASES['default'] = dj_database_url.config(conn_max_age=600) 
+        DATABASES['default'] = DATABASES.get('default')
+
+        DATABASES['default'].update({
+            'NAME': url.path[1:],
+            'USER': url.username,
+            'PASSWORD': url.password,
+            'HOST': url.hostname,
+            'PORT': url.port,
+        })
+
+        if url.scheme == 'mysql':
+            DATABASES['default']['ENGINE'] = 'django.db.backends.mysql'
+except Exception:
+    print('Unexpected error', sys.exec_info())
+
 DATABASES = {}
 
 
