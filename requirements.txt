@@ -6,6 +6,7 @@ Django==1.10.5
 factory-boy==2.8.1
 Faker==0.7.9
 freezegun==0.3.8
+gunicorn==19.7.1
 ipdb==0.10.2
 ipython==5.3.0
 ipython-genutils==0.1.0
