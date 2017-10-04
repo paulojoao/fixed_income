@@ -43,6 +43,7 @@ class Processor(object):
                     next_running_date += self.interval
                     print('.')
                 except Exception:
+                    next_running_date += self.interval
                     print('F')
 
 class CDIProcessor(Processor):
