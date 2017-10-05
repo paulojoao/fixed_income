@@ -21,7 +21,7 @@ class ProcessorTestCase(TestCase):
         processor = Processor()
         processor.save(None)
         new_count = Measure.objects.count()
-        self.assertEquals(old_count, new_count)
+        self.assertEquals(old_count+1, new_count)
     
     def test_get_last_running_date(self):
         measure1 = MeasureFactory.create(measure_date=datetime(2017,3,4,17,00,00), rate="CDI")
