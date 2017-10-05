@@ -23,6 +23,7 @@ class Processor(object):
         measure.measure = value
         measure.rate = self.rate
         measure.measure_date = datetime.now()
+        measure.save()
 
     def get_last_running_date(self):
         date = None
