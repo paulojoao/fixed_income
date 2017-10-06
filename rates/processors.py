@@ -38,6 +38,10 @@ class Processor(object):
             last_running_date = self.get_last_running_date()
             next_running_date = last_running_date + self.interval
             now = timezone.now()
+            pattern = "%d/%m/%y %H:%M"
+            print("Last running date: " + last_running_date.strftime(pattern))
+            print("Next running date: " + next_running_date.strftime(pattern))
+            print("Now: " + now.strftime(pattern))
             while next_running_date < now:
                 try:
                     self.save(next_running_date)
