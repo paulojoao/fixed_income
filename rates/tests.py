@@ -142,3 +142,24 @@ class APITestCase(TestCase):
         response = client.get(url, filter)
         self.assertEquals(200, response.status_code)
         self.assertEquals(float(response.content), 12.5)
+
+    def test_aggregate_function(self):
+        measure1 = MeasureFactory.create(measure_date=datetime(2017,3,1,0,0,0), rate="IPCA", measure=1)
+        measure1.save()
+
+        measure2 = MeasureFactory.create(measure_date=datetime(2017,2,1,0,0,0), rate="IPCA", measure=1.5)
+        measure2.save()
+
+        url = '/rate'
+        querystring = {
+            'filters': {
+                'rate': 'IPCA',
+                'measure_date__gte': '01-02-2017',
+                'measure_date__lte': '01-03-2017',
+            },
+            'function': 'Sum'
+        } 
+        client = Client()
+        response = client.get(url, querystring)
+        self.assertEquals(200, response.status_code)
+        self.assertEquals(float(response.content), 2.5)
