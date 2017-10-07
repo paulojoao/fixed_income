@@ -13,7 +13,6 @@ from rates.models import Measure
 def get_rate(request):
     date_pattern = "%d-%m-%Y"
     try:
-        import ipdb;ipdb.set_trace()
         raw_filters = request.GET.get('filters', None)
         function = request.GET.get('function')
         filters = json.loads(raw_filters.replace("'", '"'))
