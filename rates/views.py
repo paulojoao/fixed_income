@@ -3,6 +3,7 @@ from datetime import datetime
 import json
 
 from django.http import HttpResponse
+from django.shortcuts import render
 import django.db.models
 
 from rates.models import Measure
@@ -12,6 +13,7 @@ from rates.models import Measure
 def get_rate(request):
     date_pattern = "%d-%m-%Y"
     try:
+        import ipdb;ipdb.set_trace()
         raw_filters = request.GET.get('filters', None)
         function = request.GET.get('function')
         filters = json.loads(raw_filters.replace("'", '"'))
@@ -31,3 +33,6 @@ def get_rate(request):
         return HttpResponse(value)
     except IndexError:
         return HttpResponse('')
+
+def get_home(request):
+    return render(request, 'index.html')
