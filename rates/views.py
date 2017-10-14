@@ -26,10 +26,10 @@ def get_rate(request):
             value = queryset.aggregate(aggregate)
             key = "measure__" + function.lower()
             value = value.get(key,None)
+            return HttpResponse(value)
         else:
-            value = queryset[0].measure
-
-        return HttpResponse(value)
+            values = ",".join([str(x.measure) for x in queryset])
+            return HttpResponse(values)
     except IndexError:
         return HttpResponse('')
 
