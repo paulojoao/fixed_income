@@ -20,7 +20,7 @@ def get_rate(request):
             if 'date' in key:
                 raw_value = filters[key]
                 filters[key] = datetime.strptime(raw_value, date_pattern)
-        queryset = Measure.objects.filter(**filters)
+        queryset = Measure.objects.filter(**filters).order_by('measure_date')
         if(function):
             aggregate = getattr(django.db.models, function)('measure')
             value = queryset.aggregate(aggregate)
