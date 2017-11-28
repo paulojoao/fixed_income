@@ -6,5 +6,5 @@ from .models import Measure
 class MeasureAdmin(admin.ModelAdmin):
     list_display = ('measure_date', 'rate', 'measure', )
 
-admin.site.register(Measure)
+admin.site.register(Measure, MeasureAdmin)
 # Register your models here.
