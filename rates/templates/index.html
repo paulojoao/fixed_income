@@ -1,0 +1,69 @@
+<html>
+    <head>
+        <title>Taxas</title>
+
+        <script>
+            var data = {
+                filters : {}
+            }
+
+            generateUrl = function(){
+                createFilters();
+                var operation = document.getElementById('function').value;
+                if(operation){
+                    data['function'] = operation;
+                }
+                var d = JSON.stringify(data);
+                querystring = "filters="+encodeURI(JSON.stringify(data.filters))+"&"+"function="+operation;
+                document.getElementById("querystring").innerText = querystring;
+            }
+
+            createFilters = function(){
+                var filters = querystring.filters;
+                var field = document.getElementById('field').value;
+                var operator = document.getElementById('operator').value;
+                var value = document.getElementById("value").value
+                var key = field + operator;
+                data['filters'][key] = value;
+            }
+
+            serialize = function(obj, prefix) {
+                var str = [], p;
+                for(p in obj) {
+                  if (obj.hasOwnProperty(p)) {
+                    var k = prefix ? prefix + "[" + p + "]" : p, v = obj[p];
+                    str.push((v !== null && typeof v === "object") ?
+                      serialize(v, k) :
+                      encodeURIComponent(k) + "=" + encodeURIComponent(v));
+                  }
+                }
+                return str.join("&");
+            }
+        </script>
+    </head>
+    <body>
+        <label for="field">Campo</label>
+        <select id="field">
+            <option value="rate">Taxa</option>
+            <option value="measure_date">Data</option>
+            <option value="measure">Valor</option>
+        </select>
+        <label for="operator">Operador</label>
+        <select id="operator">
+            <option value="">Igual</option>
+            <option value="__gt">Maior</option>
+            <option value="__gte">Maior igual</option>
+            <option value="__lt">Menor</option>
+            <option value="__lte">Menor igual</option>
+        </select>
+        <label for="value">Valor</label>
+        <input type="text" id="value" />
+        <label for="function">Operação</label>
+        <select id="function">
+            <option value="Sum">Somatório</option>
+            <option value="Avg">Média</option>
+        </select>
+        <button onclick="generateUrl()">Adicionar filtro</button>
+        <div id="querystring"></div>
+    </body>
+</html>

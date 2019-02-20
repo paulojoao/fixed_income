@@ -3,6 +3,7 @@ from datetime import datetime
 import json
 
 from django.http import HttpResponse
+from django.shortcuts import render
 import django.db.models
 
 from rates.models import Measure
@@ -19,15 +20,18 @@ def get_rate(request):
             if 'date' in key:
                 raw_value = filters[key]
                 filters[key] = datetime.strptime(raw_value, date_pattern)
-        queryset = Measure.objects.filter(**filters)
+        queryset = Measure.objects.filter(**filters).order_by('measure_date')
         if(function):
             aggregate = getattr(django.db.models, function)('measure')
             value = queryset.aggregate(aggregate)
             key = "measure__" + function.lower()
             value = value.get(key,None)
+            return HttpResponse(value)
         else:
-            value = queryset[0].measure
-
-        return HttpResponse(value)
+            values = ",".join([str(x.measure) for x in queryset])
+            return HttpResponse(values)
     except IndexError:
         return HttpResponse('')
+
+def get_home(request):
+    return render(request, 'index.html')
