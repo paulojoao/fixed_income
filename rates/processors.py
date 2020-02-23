@@ -71,3 +71,14 @@ class CDIProcessor(Processor):
     def parse_value(self, raw):
         r = raw.strip()
         return float(r) / 100
+
+class IPCAProcessor(Processor):
+    rate = "IPCA"
+    description = "Indice geral de preços ao consumidor"
+
+    interval = timedelta(days=1)
+
+    def get_measure(self, date):
+        pass
+    
+    
