@@ -85,8 +85,6 @@ class CDIProcessorTestCase(TestCase):
     @mock.patch('urllib.request.urlopen')
     def test_get_measure(self, mk_urlopen, mk_get_url, mk_parse_value):
         mk_get_url.return_value = "http://www.google.com/"
-        mock_urlopen = mock.Mock()
-
         p = CDIProcessor()
         p.get_measure('')
         mk_urlopen.assert_called_with("http://www.google.com/")
@@ -97,6 +95,69 @@ class IPCAProcessorTestCase(TestCase):
         dt = datetime(2020, 2, 24)
         url = p.get_url(dt)
         self.assertEquals(url, "http://api.sidra.ibge.gov.br/values/t/1737/p/202002/v/63/n1/1")
+
+    @mock.patch('rates.processors.IPCAProcessor.get_url')
+    @mock.patch('rates.processors.IPCAProcessor.parse_value')
+    @mock.patch('urllib.request.urlopen')
+    def test_get_measure(self, mk_urlopen, mk_parse_value, mk_get_url):
+        mk_get_url.return_value = "urlibge"
+        p = IPCAProcessor()
+        p.get_measure('')
+        mk_urlopen.assert_called_with('urlibge')
+
+    def test_parse_value(self):
+        raw_data = """[
+            {
+                "NC": "Nível Territorial (Código)",
+                "NN": "Nível Territorial",
+                "D1C": "Mês (Código)",
+                "D1N": "Mês",
+                "D2C": "Variável (Código)",
+                "D2N": "Variável",
+                "D3C": "Brasil (Código)",
+                "D3N": "Brasil",
+                "MC": "Unidade de Medida (Código)",
+                "MN": "Unidade de Medida",
+                "V": "Valor"
+            },
+            {
+                "NC": "1",
+                "NN": "Brasil",
+                "D1C": "202001",
+                "D1N": "janeiro 2020",
+                "D2C": "63",
+                "D2N": "IPCA - Variação mensal",
+                "D3C": "1",
+                "D3N": "Brasil",
+                "MC": "2",
+                "MN": "%",
+                "V": "0.21"
+            }
+        ]"""
+        p = IPCAProcessor()
+        result = p.parse_value(raw_data)
+        self.assertEqual(0.21, result)
+    
+    def test_parse_value_none(self):
+        raw_data = """
+            [
+                {
+                    "NC": "Nível Territorial (Código)",
+                    "NN": "Nível Territorial",
+                    "D1C": "Mês (Código)",
+                    "D1N": "Mês",
+                    "D2C": "Variável (Código)",
+                    "D2N": "Variável",
+                    "D3C": "Brasil (Código)",
+                    "D3N": "Brasil",
+                    "MC": "Unidade de Medida (Código)",
+                    "MN": "Unidade de Medida",
+                    "V": "Valor"
+                }
+            ]"""
+        p = IPCAProcessor()
+        result = p.parse_value(raw_data)
+        self.assertIsNone(result)
 
 
 class TestCommand(TestCase):

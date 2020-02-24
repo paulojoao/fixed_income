@@ -1,4 +1,5 @@
 #coding: utf-8
+import json
 from urllib import request
 from datetime import timedelta
 from datetime import datetime
@@ -59,7 +60,6 @@ class CDIProcessor(Processor):
 
     def get_measure(self, date):
         url = self.get_url(date)
-        print(url)
         data = request.urlopen(url).read()
         value = self.parse_value(data)
         return value
@@ -78,9 +78,20 @@ class IPCAProcessor(Processor):
 
     interval = timedelta(days=1)
 
-    def get_measure(self, date):
-        pass
-    
     def get_url(self, date):
         url = "http://api.sidra.ibge.gov.br/values/t/1737/p/%s/v/63/n1/1" %(date.strftime('%Y%m'))
         return url
+
+    def get_measure(self, date):
+        url = self.get_url(date)
+        data = request.urlopen(url).read()
+        value = self.parse_value(data)
+        return value
+
+    def parse_value(self, data):
+        parsed_data = json.loads(data)
+        if (len(parsed_data) > 1):
+            str_value = parsed_data[1].get("V")
+            return float(str_value)
+        else:
+            return None
