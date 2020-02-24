@@ -111,7 +111,7 @@ class TestCommand(TestCase):
 class APITestCase(TestCase):
 
     def test_get(self):
-        measure1 = MeasureFactory.create(measure_date=datetime(2017,3,4,17,00,00), rate="CDI", measure=14.13)
+        measure1 = MeasureFactory.create(measure_date=datetime(2017,3,4,17,00,00), rate="IPCA", measure=14.13)
         measure1.save()
 
         measure2 = MeasureFactory.create(measure_date=datetime(2017,2,28,17,00,00), rate="CDI", measure=12.5)
@@ -119,14 +119,14 @@ class APITestCase(TestCase):
 
         url = '/rate'
         client = Client()
-        response = client.get(url, {'rate': 'CDI'})
+        response = client.get(url, {'filters': {'rate': 'CDI'}})
         self.assertEquals(response.status_code, 200)
-        self.assertEquals(float(response.content), 14.13)
+        self.assertEquals(float(response.content), 12.5)
 
     def test_get_none_measure(self):
         url = '/rate'
         client = Client()
-        response = client.get(url, {'rate': 'CDI'})
+        response = client.get(url, {'filters': {'rate': 'CDI'}})
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response.content, b'')
 
@@ -137,7 +137,7 @@ class APITestCase(TestCase):
         measure2 = MeasureFactory.create(measure_date=datetime(2017,2,28,0,0,0), rate="CDI", measure=12.5)
         measure2.save()
         url = '/rate'
-        filter = {'rate': 'CDI', 'date': '28/02/2017'}
+        filter = {'filters': {'rate': 'CDI', 'measure_date__lte': '28-02-2017'}}
         client = Client()
         response = client.get(url, filter)
         self.assertEquals(200, response.status_code)
