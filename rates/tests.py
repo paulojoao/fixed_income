@@ -9,7 +9,7 @@ from django.test import Client
 
 from rates.factories import MeasureFactory
 from rates.models import Measure
-from rates.processors import Processor, CDIProcessor
+from rates.processors import Processor, CDIProcessor, IPCAProcessor
 from rates.management.commands.import_rates import Command
 
 
@@ -90,6 +90,13 @@ class CDIProcessorTestCase(TestCase):
         p = CDIProcessor()
         p.get_measure('')
         mk_urlopen.assert_called_with("http://www.google.com/")
+
+class IPCAProcessorTestCase(TestCase):
+    def test_get_url(self):
+        p = IPCAProcessor()
+        dt = datetime(2020, 2, 24)
+        url = p.get_url(dt)
+        self.assertEquals(url, "http://api.sidra.ibge.gov.br/values/t/1737/p/202002/v/63/n1/1")
 
 
 class TestCommand(TestCase):

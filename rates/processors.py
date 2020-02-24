@@ -82,5 +82,5 @@ class IPCAProcessor(Processor):
         pass
     
     def get_url(self, date):
-        url = "http://api.sidra.ibge.gov.br/values/t/1737/p/202001/v/63/n1/1" %(date.strftime('%Y%m'))
+        url = "http://api.sidra.ibge.gov.br/values/t/1737/p/%s/v/63/n1/1" %(date.strftime('%Y%m'))
         return url
