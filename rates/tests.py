@@ -53,7 +53,7 @@ class ProcessorTestCase(TestCase):
         p.interval = timedelta(days=1)
         mk_get_last_running_date.return_value = datetime(2017, 2, 26,  0,1 , 0)
         p.execute()
-        self.assertEquals(mk_save.call_count, 3)
+        self.assertEquals(mk_save.call_count, 2)
 
 
 
