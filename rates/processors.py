@@ -12,8 +12,8 @@ from rates.models import Measure
 
 class Frequency(Enum):
     DAILY = 1
-    MONTHLY = 1
-    ANNUAL = 1
+    MONTHLY = 2
+    ANNUAL = 3
 
 
 class Processor(object):
@@ -23,64 +23,82 @@ class Processor(object):
     start_date = ""
     frequency = Frequency.DAILY
 
+    def __init__(self):
+        print("Iniciando processor para a taxa: %s \t frequência %s" %(self.rate, self.frequency))
+
     def get_measure(self, date):
         raise NotImplemented
 
     def save(self, date):
-        value = self.get_measure(date)
-        measure = Measure()
-        measure.measure = value
-        measure.rate = self.rate
-        measure.measure_date = datetime.now()
-        measure.save()
+        if (not self.already_running(date)):
+            print("Buscando dados do %s no dia %s" %(self.rate, date.strftime("%d-%m-%y")))
+            value = self.get_measure(date)
+            measure = Measure()
+            measure.measure = value
+            measure.rate = self.rate
+            measure.measure_date = datetime.now()
+            measure.save()
+        else:
+            print("já foi executada a busca do %s no dia %s" %(self.rate, date.strftime("%d-%m-%y")))
+
+    def already_running(self, last_running_date):
+        print('Taxa: \t %s \t Frequencia: %s.\t última execução: %s' %(self.rate, self.frequency, last_running_date))
+        if (self.frequency == Frequency.DAILY):
+            return last_running_date.date() == datetime.now().date()
+        elif (self.frequency == Frequency.ANNUAL):
+            return last_running_date.year() == datetime.now().year()
+        elif (self.frequency == Frequency.MONTHLY):
+            return last_running_date.strftime('%m-%y') == datetime.now().strftime('%m-%y')
+        else:
+            return False
+
+    def get_date(self, date):
+        if self.frequency == Frequency.DAILY:
+            return date 
+        elif self.frequency == Frequency.MONTHLY:
+            return date.
+
 
     def get_last_running_date(self):
+        print("Buscando data de ultima leitura do %s" %(self.rate))
         date = None
         try:
             measure = Measure.objects.filter(rate=self.rate).order_by('-measure_date')[0]
             date = measure.measure_date
         except IndexError:
             date = self.start_date
+        print("Data de última leitura: %s" %(date.strftime("%d-%m-%y")))
         return date
-
-    def check_running(self, last_running_date):
-        if (self.frequency == Frequency.DAILY):
-            return last_running_date.date() == datetime.now().date()
-        elif (self.frequency == Frequency.ANNUAL):
-            return last_running_date.year() == datetime.now().year()
-        elif (self.frequency == Frequency.MONTHLY and last_running_date.strftime('%m-%y') == datetime.now().strftime('%m-%y')):
-            return True 
-        else:
-            return False
 
     def execute(self):
             last_running_date = self.get_last_running_date()
             
             next_running_date = last_running_date + self.interval
             now = timezone.now()
-            pattern = "%d/%m/%y %H:%M"
-            already_running = self.check_running(last_running_date)
-            while not already_running:
+            while next_running_date < now:
                 try:
-                    import ipdb;ipdb.set_trace()
                     self.save(next_running_date)
                     next_running_date += self.interval
                     print('.')
                 except Exception as err:
                     next_running_date += self.interval
                     print('F {}'.format(err))
-                already_running = self.check_running(next_running_date)
 
 
 class IPCAProcessor(Processor):
     rate = "IPCA"
     description = "Indice geral de preços ao consumidor"
     frequency = Frequency.MONTHLY
-    start_date = datetime(2019, 1, 1)
+    start_date = datetime(2001, 1, 1)
 
     def get_url(self, date):
-        url = "http://api.sidra.ibge.gov.br/values/t/1737/p/%s/v/63/n1/1" % (date.strftime('%Y%m'))
+        year = date.year()
+        month = date.month() - 1
+        url = "http://api.sidra.ibge.gov.br/values/t/1737/p/%s%s/v/63/n1/1" % (year, month))
         return url
+
+    def get_measure_date(self):
+        pass
 
     def get_measure(self, date):
         url = self.get_url(date)
@@ -97,22 +115,22 @@ class IPCAProcessor(Processor):
             return None
 
 
-class CDIProcessor(Processor):
-    rate = "CDI"
-    description = "TODO"
-    start_date = datetime(2012, 8, 20)
-    frequency = Frequency.DAILY
+# class CDIProcessor(Processor):
+#     rate = "CDI"
+#     description = "TODO"
+#     start_date = datetime(2012, 8, 20)
+#     frequency = Frequency.DAILY
 
-    def get_measure(self, date):
-        url = self.get_url(date)
-        data = request.urlopen(url).read()
-        value = self.parse_value(data)
-        return value
+#     def get_measure(self, date):
+#         url = self.get_url(date)
+#         data = request.urlopen(url).read()
+#         value = self.parse_value(data)
+#         return value
 
-    def get_url(self, date):
-        st = 'ftp://ftp.cetip.com.br/MediaCDI/'+date.strftime('%Y%m%d') + '.txt'
-        return st
+#     def get_url(self, date):
+#         st = 'ftp://ftp.cetip.com.br/MediaCDI/'+date.strftime('%Y%m%d') + '.txt'
+#         return st
     
-    def parse_value(self, raw):
-        r = raw.strip()
-        return float(r) / 100
+#     def parse_value(self, raw):
+#         r = raw.strip()
+#         return float(r) / 100
