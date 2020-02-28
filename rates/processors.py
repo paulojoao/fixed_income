@@ -29,6 +29,9 @@ class Processor(object):
     def get_measure(self, date):
         raise NotImplemented
 
+    def get_measure_date(self, date):
+        raise NotImplemented
+
     def save(self, date):
         if (not self.already_running(date)):
             print("Buscando dados do %s no dia %s" %(self.rate, date.strftime("%d-%m-%y")))
@@ -36,7 +39,7 @@ class Processor(object):
             measure = Measure()
             measure.measure = value
             measure.rate = self.rate
-            measure.measure_date = datetime.now()
+            measure.measure_date = self.get_measure_date(date)
             measure.save()
         else:
             print("já foi executada a busca do %s no dia %s" %(self.rate, date.strftime("%d-%m-%y")))
@@ -56,7 +59,7 @@ class Processor(object):
         if self.frequency == Frequency.DAILY:
             return date 
         elif self.frequency == Frequency.MONTHLY:
-            return date.
+            return date
 
 
     def get_last_running_date(self):
@@ -92,13 +95,16 @@ class IPCAProcessor(Processor):
     start_date = datetime(2001, 1, 1)
 
     def get_url(self, date):
-        year = date.year()
-        month = date.month() - 1
-        url = "http://api.sidra.ibge.gov.br/values/t/1737/p/%s%s/v/63/n1/1" % (year, month))
+        date.replace(day=1)
+        date = date - datetime.timedelta(days=1)
+
+        url = "http://api.sidra.ibge.gov.br/values/t/1737/p/%s%s/v/63/n1/1" % (date.year(), date.month())
         return url
 
-    def get_measure_date(self):
-        pass
+    def get_measure_date(self, date):
+        date.replace(day=1)
+        date = date - datetime.timedelta(days=1)
+        return date
 
     def get_measure(self, date):
         url = self.get_url(date)
@@ -115,22 +121,25 @@ class IPCAProcessor(Processor):
             return None
 
 
-# class CDIProcessor(Processor):
-#     rate = "CDI"
-#     description = "TODO"
-#     start_date = datetime(2012, 8, 20)
-#     frequency = Frequency.DAILY
+class CDIProcessor(Processor):
+    rate = "CDI"
+    description = "TODO"
+    start_date = datetime(2012, 8, 20)
+    frequency = Frequency.DAILY
 
-#     def get_measure(self, date):
-#         url = self.get_url(date)
-#         data = request.urlopen(url).read()
-#         value = self.parse_value(data)
-#         return value
+    def get_measure_date(self, date):
+        return date
 
-#     def get_url(self, date):
-#         st = 'ftp://ftp.cetip.com.br/MediaCDI/'+date.strftime('%Y%m%d') + '.txt'
-#         return st
+    def get_measure(self, date):
+        url = self.get_url(date)
+        data = request.urlopen(url).read()
+        value = self.parse_value(data)
+        return value
+
+    def get_url(self, date):
+        st = 'ftp://ftp.cetip.com.br/MediaCDI/'+date.strftime('%Y%m%d') + '.txt'
+        return st
     
-#     def parse_value(self, raw):
-#         r = raw.strip()
-#         return float(r) / 100
+    def parse_value(self, raw):
+        r = raw.strip()
+        return float(r) / 100
