@@ -49,7 +49,7 @@ class Processor(object):
         if (self.frequency == Frequency.DAILY):
             return last_running_date.date() == datetime.now().date()
         elif (self.frequency == Frequency.ANNUAL):
-            return last_running_date.year() == datetime.now().year()
+            return last_running_date.year == datetime.now().year
         elif (self.frequency == Frequency.MONTHLY):
             return last_running_date.strftime('%m-%y') == datetime.now().strftime('%m-%y')
         else:
@@ -96,20 +96,22 @@ class IPCAProcessor(Processor):
 
     def get_url(self, date):
         date.replace(day=1)
-        date = date - datetime.timedelta(days=1)
-
-        url = "http://api.sidra.ibge.gov.br/values/t/1737/p/%s%s/v/63/n1/1" % (date.year(), date.month())
+        date = date - timedelta(days=1)
+        year_month = date.strftime("%Y%m")
+        url = "http://api.sidra.ibge.gov.br/values/t/1737/p/%s/v/63/n1/1" %(year_month)
+        print("URL: %s" %(url))
         return url
 
     def get_measure_date(self, date):
         date.replace(day=1)
-        date = date - datetime.timedelta(days=1)
+        date = date - timedelta(days=1)
         return date
 
     def get_measure(self, date):
         url = self.get_url(date)
         data = request.urlopen(url).read()
         value = self.parse_value(data)
+        print("IPCA: %s" %(value))
         return value
 
     def parse_value(self, data):
