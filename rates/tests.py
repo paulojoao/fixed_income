@@ -14,12 +14,18 @@ from rates.management.commands.import_rates import Command
 
 
 class ProcessorTestCase(TestCase):
+    
+    @freezegun.freeze_time("2020-03-01 01:00:00")
+    @mock.patch('rates.processors.Processor.get_measure_date')
+    @mock.patch('rates.processors.Processor.already_running')
     @mock.patch('rates.processors.Processor.get_measure')
-    def test_save(self, mk_get_value):
+    def test_save(self, mk_get_value, mk_already_running, mk_get_measure_date):
         mk_get_value.return_value = 10.0
+        mk_already_running.return_value = False
+        mk_get_measure_date.return_value = datetime.now()
         old_count = Measure.objects.count()
         processor = Processor()
-        processor.save(None)
+        processor.save(datetime.now())
         new_count = Measure.objects.count()
         self.assertEquals(old_count+1, new_count)
     
@@ -53,16 +59,17 @@ class ProcessorTestCase(TestCase):
         p.interval = timedelta(days=1)
         mk_get_last_running_date.return_value = datetime(2017, 2, 26,  0,1 , 0)
         p.execute()
-        self.assertEquals(mk_save.call_count, 2)
-
+        self.assertEquals(mk_save.call_count, 3)
 
 
 class ProcessorA(object):
+    rate = "processorA"
     def execute(self):
         pass
 
 
 class ProcessorB(object):
+    rate = "ProcessorB"
     def execute(self):
         pass
 
