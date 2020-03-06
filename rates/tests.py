@@ -9,17 +9,23 @@ from django.test import Client
 
 from rates.factories import MeasureFactory
 from rates.models import Measure
-from rates.processors import Processor, CDIProcessor
+from rates.processors import Processor, CDIProcessor, IPCAProcessor
 from rates.management.commands.import_rates import Command
 
 
 class ProcessorTestCase(TestCase):
+    
+    @freezegun.freeze_time("2020-03-01 01:00:00")
+    @mock.patch('rates.processors.Processor.get_measure_date')
+    @mock.patch('rates.processors.Processor.already_running')
     @mock.patch('rates.processors.Processor.get_measure')
-    def test_save(self, mk_get_value):
+    def test_save(self, mk_get_value, mk_already_running, mk_get_measure_date):
         mk_get_value.return_value = 10.0
+        mk_already_running.return_value = False
+        mk_get_measure_date.return_value = datetime.now()
         old_count = Measure.objects.count()
         processor = Processor()
-        processor.save(None)
+        processor.save(datetime.now())
         new_count = Measure.objects.count()
         self.assertEquals(old_count+1, new_count)
     
@@ -56,13 +62,14 @@ class ProcessorTestCase(TestCase):
         self.assertEquals(mk_save.call_count, 3)
 
 
-
 class ProcessorA(object):
+    rate = "processorA"
     def execute(self):
         pass
 
 
 class ProcessorB(object):
+    rate = "ProcessorB"
     def execute(self):
         pass
 
@@ -85,11 +92,79 @@ class CDIProcessorTestCase(TestCase):
     @mock.patch('urllib.request.urlopen')
     def test_get_measure(self, mk_urlopen, mk_get_url, mk_parse_value):
         mk_get_url.return_value = "http://www.google.com/"
-        mock_urlopen = mock.Mock()
-
         p = CDIProcessor()
         p.get_measure('')
         mk_urlopen.assert_called_with("http://www.google.com/")
+
+class IPCAProcessorTestCase(TestCase):
+    def test_get_url(self):
+        p = IPCAProcessor()
+        dt = datetime(2020, 2, 24)
+        url = p.get_url(dt)
+        self.assertEquals(url, "http://api.sidra.ibge.gov.br/values/t/1737/p/202002/v/63/n1/1")
+
+    @mock.patch('rates.processors.IPCAProcessor.get_url')
+    @mock.patch('rates.processors.IPCAProcessor.parse_value')
+    @mock.patch('urllib.request.urlopen')
+    def test_get_measure(self, mk_urlopen, mk_parse_value, mk_get_url):
+        mk_get_url.return_value = "urlibge"
+        p = IPCAProcessor()
+        p.get_measure('')
+        mk_urlopen.assert_called_with('urlibge')
+
+    def test_parse_value(self):
+        raw_data = """[
+            {
+                "NC": "Nível Territorial (Código)",
+                "NN": "Nível Territorial",
+                "D1C": "Mês (Código)",
+                "D1N": "Mês",
+                "D2C": "Variável (Código)",
+                "D2N": "Variável",
+                "D3C": "Brasil (Código)",
+                "D3N": "Brasil",
+                "MC": "Unidade de Medida (Código)",
+                "MN": "Unidade de Medida",
+                "V": "Valor"
+            },
+            {
+                "NC": "1",
+                "NN": "Brasil",
+                "D1C": "202001",
+                "D1N": "janeiro 2020",
+                "D2C": "63",
+                "D2N": "IPCA - Variação mensal",
+                "D3C": "1",
+                "D3N": "Brasil",
+                "MC": "2",
+                "MN": "%",
+                "V": "0.21"
+            }
+        ]"""
+        p = IPCAProcessor()
+        result = p.parse_value(raw_data)
+        self.assertEqual(0.21, result)
+    
+    def test_parse_value_none(self):
+        raw_data = """
+            [
+                {
+                    "NC": "Nível Territorial (Código)",
+                    "NN": "Nível Territorial",
+                    "D1C": "Mês (Código)",
+                    "D1N": "Mês",
+                    "D2C": "Variável (Código)",
+                    "D2N": "Variável",
+                    "D3C": "Brasil (Código)",
+                    "D3N": "Brasil",
+                    "MC": "Unidade de Medida (Código)",
+                    "MN": "Unidade de Medida",
+                    "V": "Valor"
+                }
+            ]"""
+        p = IPCAProcessor()
+        result = p.parse_value(raw_data)
+        self.assertIsNone(result)
 
 
 class TestCommand(TestCase):
@@ -111,7 +186,7 @@ class TestCommand(TestCase):
 class APITestCase(TestCase):
 
     def test_get(self):
-        measure1 = MeasureFactory.create(measure_date=datetime(2017,3,4,17,00,00), rate="CDI", measure=14.13)
+        measure1 = MeasureFactory.create(measure_date=datetime(2017,3,4,17,00,00), rate="IPCA", measure=14.13)
         measure1.save()
 
         measure2 = MeasureFactory.create(measure_date=datetime(2017,2,28,17,00,00), rate="CDI", measure=12.5)
@@ -119,14 +194,14 @@ class APITestCase(TestCase):
 
         url = '/rate'
         client = Client()
-        response = client.get(url, {'rate': 'CDI'})
+        response = client.get(url, {'filters': {'rate': 'CDI'}})
         self.assertEquals(response.status_code, 200)
-        self.assertEquals(float(response.content), 14.13)
+        self.assertEquals(float(response.content), 12.5)
 
     def test_get_none_measure(self):
         url = '/rate'
         client = Client()
-        response = client.get(url, {'rate': 'CDI'})
+        response = client.get(url, {'filters': {'rate': 'CDI'}})
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response.content, b'')
 
@@ -137,7 +212,7 @@ class APITestCase(TestCase):
         measure2 = MeasureFactory.create(measure_date=datetime(2017,2,28,0,0,0), rate="CDI", measure=12.5)
         measure2.save()
         url = '/rate'
-        filter = {'rate': 'CDI', 'date': '28/02/2017'}
+        filter = {'filters': {'rate': 'CDI', 'measure_date__lte': '28-02-2017'}}
         client = Client()
         response = client.get(url, filter)
         self.assertEquals(200, response.status_code)
